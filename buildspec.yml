@@ -1,0 +1,16 @@
+version: 0.2
+phases:
+  pre_build:
+    commands:
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 872575360511.dkr.ecr.us-east-1.amazonaws.com
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+  build:
+    commands:
+      - docker build -t 872575360511.dkr.ecr.us-east-1.amazonaws.com/talentflow-ai:$IMAGE_TAG .
+  post_build:
+    commands:
+      - docker push 872575360511.dkr.ecr.us-east-1.amazonaws.com/talentflow-ai:$IMAGE_TAG
+      - printf '[{"name":"talentflow-app","imageUri":"%s"}]' 872575360511.dkr.ecr.us-east-1.amazonaws.com/talentflow-ai:$IMAGE_TAG > imagedefinitions.json
+artifacts:
+  files:
+    - imagedefinitions.json

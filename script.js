@@ -29,7 +29,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 
 function loadData(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||structuredClone(demoData)}catch{return structuredClone(demoData)}}
-function saveData(){localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}
+function saveData(){localStorage.setItem(STORAGE_KEY,JSON.stringify(data));fetch('/api/data',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({candidates:data.candidates,jobs:data.jobs,interviews:data.interviews})}).catch(()=>{})}
 function showToast(message){const el=document.createElement('div');el.className='toast';el.textContent=message;$('toastContainer').appendChild(el);setTimeout(()=>el.remove(),2800)}
 function initials(name){return String(name||'Admin').split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase()}
 function fmtDate(v){if(!v)return '—';return new Date(v+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}
@@ -87,3 +87,5 @@ function initActions(){document.querySelectorAll('[data-action="add-candidate"]'
 
 function boot(){initAuth();initNavigation();initActions();if(!currentUser){$('app').classList.add('hidden');$('authScreen').classList.remove('hidden')}else{$('authScreen').classList.add('hidden');$('app').classList.remove('hidden')}}
 boot();
+
+;(async()=>{try{const r=await fetch('/api/data');if(!r.ok)return;const d=await r.json();if(d.candidates.length||d.jobs.length||d.interviews.length){data.candidates=d.candidates;data.jobs=d.jobs;data.interviews=d.interviews;localStorage.setItem(STORAGE_KEY,JSON.stringify(data));if(currentUser)renderAll()}else{saveData()}}catch(e){}})();
